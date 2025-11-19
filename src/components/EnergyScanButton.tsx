@@ -3,11 +3,12 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Zap, Sparkles, Battery, BatteryMedium, BatteryLow, Sun, Cloud, Moon } from 'lucide-react';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
+import { useLifeSystem, EnergyLevel } from '../contexts/LifeSystemContext';
 
-type EnergyLevel = 'high' | 'medium' | 'low' | 'crash' | 'lowpool' | 'create' | 'reset';
+type EnergyLevelType = 'high' | 'medium' | 'low' | 'crash' | 'lowpool' | 'create' | 'reset';
 
 interface EnergyResult {
-  level: EnergyLevel;
+  level: EnergyLevelType;
   icon: any;
   color: string;
   title: string;
@@ -16,10 +17,11 @@ interface EnergyResult {
 }
 
 export function EnergyScanButton() {
+  const { setCurrentEnergy, getSuggestedActions } = useLifeSystem();
   const [scanning, setScanning] = useState(false);
   const [result, setResult] = useState<EnergyResult | null>(null);
 
-  const energyProfiles: Record<EnergyLevel, EnergyResult> = {
+  const energyProfiles: Record<EnergyLevelType, EnergyResult> = {
     high: {
       level: 'high',
       icon: Sun,
@@ -127,9 +129,10 @@ export function EnergyScanButton() {
     // 模拟扫描过程
     setTimeout(() => {
       // 随机选择一个能量状态（实际使用时可以基于问卷或其他输入）
-      const levels: EnergyLevel[] = ['high', 'medium', 'low', 'crash', 'lowpool', 'create', 'reset'];
+      const levels: EnergyLevelType[] = ['high', 'medium', 'low', 'crash', 'lowpool', 'create', 'reset'];
       const randomLevel = levels[Math.floor(Math.random() * levels.length)];
       setResult(energyProfiles[randomLevel]);
+      setCurrentEnergy(randomLevel);
       setScanning(false);
     }, 2000);
   };

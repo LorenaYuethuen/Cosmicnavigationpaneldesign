@@ -1,199 +1,23 @@
 import { motion } from 'motion/react';
-import { TrendingUp, Target, Sparkles, Rocket, Map, Calendar } from 'lucide-react';
+import { Map, TrendingUp, Target, Sparkles, CheckCircle2, Circle } from 'lucide-react';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
 import { Progress } from './ui/progress';
-
-interface Quarter {
-  id: string;
-  quarter: string;
-  focus: string;
-  goals: string[];
-  status: 'completed' | 'current' | 'upcoming';
-}
-
-interface Year {
-  year: number;
-  theme: string;
-  color: string;
-  icon: any;
-  description: string;
-  quarters: Quarter[];
-}
+import { useLifeSystem } from '../contexts/LifeSystemContext';
 
 export function ThreeYearPath() {
-  const pathData: Year[] = [
-    {
-      year: 1,
-      theme: '重建能量体',
-      color: '#42F5DC',
-      icon: Sparkles,
-      description: '身体 × 环境 × 信念',
-      quarters: [
-        {
-          id: 'y1q1',
-          quarter: 'Q1',
-          focus: '身体系统启动',
-          goals: [
-            '建立运动习惯（3-4次/周）',
-            '优化睡眠作息',
-            '整理生活空间',
-          ],
-          status: 'completed',
-        },
-        {
-          id: 'y1q2',
-          quarter: 'Q2',
-          focus: '能量优化',
-          goals: [
-            '精力管理系统',
-            '营养知识学习',
-            '情绪调节练习',
-          ],
-          status: 'current',
-        },
-        {
-          id: 'y1q3',
-          quarter: 'Q3',
-          focus: '环境升级',
-          goals: [
-            '提升居住美学',
-            '建立仪式感',
-            '旅居探索开始',
-          ],
-          status: 'upcoming',
-        },
-        {
-          id: 'y1q4',
-          quarter: 'Q4',
-          focus: '系统稳定',
-          goals: [
-            '巩固所有习惯',
-            '年度复盘',
-            '明年规划',
-          ],
-          status: 'upcoming',
-        },
-      ],
-    },
-    {
-      year: 2,
-      theme: '构建价值体',
-      color: '#6E79FF',
-      icon: Target,
-      description: '技能 × 内容 × 灵感',
-      quarters: [
-        {
-          id: 'y2q1',
-          quarter: 'Q1',
-          focus: '技能探索',
-          goals: [
-            '发现核心天赋',
-            '学习专业技能',
-            '建立作品集',
-          ],
-          status: 'upcoming',
-        },
-        {
-          id: 'y2q2',
-          quarter: 'Q2',
-          focus: '内容创作',
-          goals: [
-            '开始创作输出',
-            '建立个人品牌',
-            '积累受众',
-          ],
-          status: 'upcoming',
-        },
-        {
-          id: 'y2q3',
-          quarter: 'Q3',
-          focus: '价值变现',
-          goals: [
-            '第一个收入项目',
-            '优化变现路径',
-            '扩大影响力',
-          ],
-          status: 'upcoming',
-        },
-        {
-          id: 'y2q4',
-          quarter: 'Q4',
-          focus: '系统迭代',
-          goals: [
-            '优化工作流',
-            '年度总结',
-            '战略调整',
-          ],
-          status: 'upcoming',
-        },
-      ],
-    },
-    {
-      year: 3,
-      theme: '激活宇宙体',
-      color: '#BFA36F',
-      icon: Rocket,
-      description: '旅居 × 收入 × 创造',
-      quarters: [
-        {
-          id: 'y3q1',
-          quarter: 'Q1',
-          focus: '自由启动',
-          goals: [
-            '实现位置自由',
-            '第一次长期旅居',
-            '远程收入稳定',
-          ],
-          status: 'upcoming',
-        },
-        {
-          id: 'y3q2',
-          quarter: 'Q2',
-          focus: '体验扩展',
-          goals: [
-            '探索新城市',
-            '多元文化体验',
-            '灵感收集',
-          ],
-          status: 'upcoming',
-        },
-        {
-          id: 'y3q3',
-          quarter: 'Q3',
-          focus: '创造爆发',
-          goals: [
-            '重大作品发布',
-            '收入结构优化',
-            '影响力提升',
-          ],
-          status: 'upcoming',
-        },
-        {
-          id: 'y3q4',
-          quarter: 'Q4',
-          focus: '整合升华',
-          goals: [
-            '生活方式成熟',
-            '三年复盘',
-            '新周期规划',
-          ],
-          status: 'upcoming',
-        },
-      ],
-    },
-  ];
+  const { yearGoals, updateYearGoal } = useLifeSystem();
 
-  const currentProgress = 25; // Q2 of Year 1
+  const currentYear = new Date().getFullYear();
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header */}
       <div className="text-center">
         <motion.div
           className="inline-flex items-center gap-2 mb-4"
           animate={{
-            y: [0, -5, 0],
+            scale: [1, 1.05, 1],
           }}
           transition={{
             duration: 3,
@@ -201,164 +25,225 @@ export function ThreeYearPath() {
             ease: 'easeInOut',
           }}
         >
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#42F5DC] to-[#BFA36F] flex items-center justify-center">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#6E79FF] to-[#BFA36F] flex items-center justify-center">
             <Map className="w-6 h-6 text-[#04070F]" />
           </div>
         </motion.div>
-        <h2 className="text-3xl md:text-4xl mb-2" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
-          <span className="bg-gradient-to-r from-[#42F5DC] via-[#6E79FF] to-[#BFA36F] bg-clip-text text-transparent">
+        <h2 className="text-3xl mb-2" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+          <span className="bg-gradient-to-r from-[#6E79FF] via-[#BFA36F] to-[#42F5DC] bg-clip-text text-transparent">
             三年宇宙路径
           </span>
         </h2>
-        <p className="text-[#C8A777] mb-6">从现在走到"旅居+创造+收入"</p>
-
-        {/* Overall Progress */}
-        <Card className="bg-[#0B1C26]/60 border-[#42F5DC]/30 p-6 max-w-2xl mx-auto">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-white">整体进度</span>
-            <span className="text-[#42F5DC]" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
-              {currentProgress}%
-            </span>
-          </div>
-          <Progress value={currentProgress} className="h-3" />
-          <div className="text-sm text-[#C8A777] mt-3 text-center">
-            正在第一年 Q2：能量优化阶段
-          </div>
-        </Card>
+        <p className="text-[#C8A777]">2025-2027 · 系统演化 · 自由创造</p>
       </div>
 
-      {/* Timeline */}
-      <div className="space-y-12">
-        {pathData.map((year, yearIndex) => {
-          const Icon = year.icon;
+      {/* Year Cards */}
+      <div className="space-y-6">
+        {yearGoals.map((goal, yearIndex) => {
+          const yearColors = {
+            2025: { primary: '#42F5DC', secondary: '#28D5C6', bg: 'from-[#42F5DC] to-[#28D5C6]' },
+            2026: { primary: '#6E79FF', secondary: '#42F5DC', bg: 'from-[#6E79FF] to-[#42F5DC]' },
+            2027: { primary: '#BFA36F', secondary: '#6E79FF', bg: 'from-[#BFA36F] to-[#6E79FF]' },
+          };
+          const colors = yearColors[goal.year as keyof typeof yearColors];
+          const isCurrentYear = goal.year === currentYear;
+
           return (
             <motion.div
-              key={year.year}
-              initial={{ opacity: 0, y: 30 }}
+              key={goal.id}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: yearIndex * 0.2 }}
+              transition={{ delay: yearIndex * 0.1 }}
             >
-              {/* Year Header */}
-              <div className="flex items-center gap-4 mb-6">
-                <motion.div
-                  className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0"
-                  style={{ backgroundColor: `${year.color}20` }}
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                >
-                  <Icon className="w-8 h-8" style={{ color: year.color }} />
-                </motion.div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-1">
-                    <h3 className="text-2xl" style={{ color: year.color, fontFamily: 'Space Grotesk, sans-serif' }}>
-                      Year {year.year}
-                    </h3>
-                    <Badge
-                      style={{
-                        backgroundColor: `${year.color}20`,
-                        color: year.color,
-                        borderColor: `${year.color}40`,
-                      }}
-                    >
-                      {year.description}
-                    </Badge>
-                  </div>
-                  <p className="text-xl text-white">{year.theme}</p>
-                </div>
-              </div>
-
-              {/* Quarters Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {year.quarters.map((quarter, qIndex) => (
-                  <motion.div
-                    key={quarter.id}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: yearIndex * 0.2 + qIndex * 0.1 }}
-                  >
-                    <Card
-                      className={`p-5 border-2 transition-all h-full ${
-                        quarter.status === 'current'
-                          ? 'bg-[#0B1C26]/80 border-current shadow-lg'
-                          : quarter.status === 'completed'
-                          ? 'bg-[#0B1C26]/40 border-[#28D5C6]/30 opacity-75'
-                          : 'bg-[#0B1C26]/40 border-white/10'
-                      }`}
-                      style={{
-                        borderColor: quarter.status === 'current' ? year.color : undefined,
-                      }}
-                    >
-                      {/* Quarter Header */}
-                      <div className="flex items-center justify-between mb-3">
-                        <div
-                          className="text-sm px-2 py-1 rounded"
-                          style={{
-                            backgroundColor: `${year.color}20`,
-                            color: year.color,
-                          }}
+              <Card
+                className={`bg-gradient-to-br from-[#0B1C26]/80 to-[#0F3840]/60 border-2 p-6 ${
+                  isCurrentYear ? 'ring-2 ring-offset-2 ring-offset-[#04070F]' : ''
+                }`}
+                style={{
+                  borderColor: `${colors.primary}40`,
+                  ringColor: isCurrentYear ? colors.primary : undefined,
+                }}
+              >
+                {/* Year Header */}
+                <div className="flex items-start justify-between mb-6">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div
+                        className="w-12 h-12 rounded-xl flex items-center justify-center"
+                        style={{ backgroundColor: `${colors.primary}20` }}
+                      >
+                        <span
+                          className="text-2xl"
+                          style={{ color: colors.primary, fontFamily: 'Space Grotesk, sans-serif' }}
                         >
-                          {quarter.quarter}
-                        </div>
-                        {quarter.status === 'current' && (
-                          <motion.div
-                            animate={{
-                              scale: [1, 1.2, 1],
-                              opacity: [1, 0.6, 1],
-                            }}
-                            transition={{
-                              duration: 2,
-                              repeat: 9999,
-                              ease: 'easeInOut',
-                            }}
-                          >
-                            <div
-                              className="w-2 h-2 rounded-full"
-                              style={{ backgroundColor: year.color }}
-                            />
-                          </motion.div>
-                        )}
-                        {quarter.status === 'completed' && (
-                          <div className="text-[#28D5C6]">✓</div>
-                        )}
+                          {goal.year}
+                        </span>
                       </div>
+                      {isCurrentYear && (
+                        <Badge className="bg-gradient-to-r from-[#42F5DC]/20 to-[#6E79FF]/20 text-[#42F5DC] border-[#42F5DC]/30">
+                          <Sparkles className="w-3 h-3 mr-1" />
+                          当前年份
+                        </Badge>
+                      )}
+                    </div>
+                    <h3
+                      className="text-2xl mb-2"
+                      style={{ color: colors.primary, fontFamily: 'Space Grotesk, sans-serif' }}
+                    >
+                      {goal.title}
+                    </h3>
+                    <p className="text-[#C8A777]">{goal.description}</p>
+                  </div>
+                  <div className="text-right ml-4">
+                    <div
+                      className="text-4xl mb-1"
+                      style={{ color: colors.primary, fontFamily: 'Space Grotesk, sans-serif' }}
+                    >
+                      {goal.progress}%
+                    </div>
+                    <div className="text-xs text-[#C8A777]">完成度</div>
+                  </div>
+                </div>
 
-                      <h4 className="text-white mb-3">{quarter.focus}</h4>
+                {/* Progress Bar */}
+                <div className="mb-6">
+                  <Progress value={goal.progress} className="h-2" />
+                </div>
 
-                      <div className="space-y-2">
-                        {quarter.goals.map((goal, gIndex) => (
+                {/* Quarterly Milestones */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {(['q1', 'q2', 'q3', 'q4'] as const).map((quarter, qIndex) => {
+                    const quarterLabels = { q1: 'Q1', q2: 'Q2', q3: 'Q3', q4: 'Q4' };
+                    const quarterNames = { q1: '第一季度', q2: '第二季度', q3: '第三季度', q4: '第四季度' };
+                    const milestones = goal.quarters[quarter];
+                    const quarterColor = qIndex % 2 === 0 ? colors.primary : colors.secondary;
+
+                    return (
+                      <Card
+                        key={quarter}
+                        className="bg-[#0F3840]/40 border p-4"
+                        style={{ borderColor: `${quarterColor}30` }}
+                      >
+                        <div className="flex items-center gap-2 mb-3">
                           <div
-                            key={gIndex}
-                            className={`text-sm ${
-                              quarter.status === 'completed'
-                                ? 'text-[#C8A777] line-through'
-                                : 'text-[#C8A777]'
-                            }`}
+                            className="w-8 h-8 rounded-lg flex items-center justify-center"
+                            style={{ backgroundColor: `${quarterColor}20` }}
                           >
-                            <span
-                              className="inline-block w-1.5 h-1.5 rounded-full mr-2"
-                              style={{
-                                backgroundColor: quarter.status === 'current' ? year.color : '#C8A777',
-                              }}
-                            />
-                            {goal}
+                            <span className="text-sm" style={{ color: quarterColor }}>
+                              {quarterLabels[quarter]}
+                            </span>
                           </div>
-                        ))}
-                      </div>
-                    </Card>
-                  </motion.div>
-                ))}
-              </div>
+                          <span className="text-white text-sm">{quarterNames[quarter]}</span>
+                        </div>
+                        <div className="space-y-2">
+                          {milestones.map((milestone, mIndex) => (
+                            <div
+                              key={mIndex}
+                              className="flex items-start gap-2 text-sm text-[#C8A777] hover:text-white transition-colors cursor-pointer group"
+                            >
+                              <Circle className="w-3 h-3 mt-0.5 flex-shrink-0 group-hover:hidden" />
+                              <CheckCircle2
+                                className="w-3 h-3 mt-0.5 flex-shrink-0 hidden group-hover:block"
+                                style={{ color: quarterColor }}
+                              />
+                              <span className="flex-1">{milestone}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </Card>
+                    );
+                  })}
+                </div>
+
+                {/* Year Focus */}
+                <div className="mt-6 p-4 rounded-xl bg-gradient-to-r" style={{
+                  background: `linear-gradient(to right, ${colors.primary}10, ${colors.secondary}10)`,
+                }}>
+                  <div className="flex items-start gap-3">
+                    <Target className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: colors.primary }} />
+                    <div className="text-sm text-[#C8A777]">
+                      <span style={{ color: colors.primary }}>年度焦点：</span>
+                      {goal.year === 2025 && ' 建立习惯系统、优化环境、稳定收入'}
+                      {goal.year === 2026 && ' 深化系统、提升品质、拓展体验'}
+                      {goal.year === 2027 && ' 时间自由、创造价值、影响他人'}
+                    </div>
+                  </div>
+                </div>
+              </Card>
             </motion.div>
           );
         })}
       </div>
 
-      {/* Principles */}
-      <Card className="bg-gradient-to-r from-[#42F5DC]/10 via-[#6E79FF]/10 to-[#BFA36F]/10 border-[#42F5DC]/30 p-6">
+      {/* Path Timeline */}
+      <Card className="bg-gradient-to-br from-[#0B1C26]/60 to-[#0F3840]/40 border-[#42F5DC]/30 p-6">
+        <h3 className="text-xl text-white mb-6 flex items-center gap-2">
+          <TrendingUp className="w-5 h-5 text-[#42F5DC]" />
+          三年演化路径
+        </h3>
+        <div className="relative">
+          {/* Timeline Line */}
+          <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gradient-to-b from-[#42F5DC] via-[#6E79FF] to-[#BFA36F]" />
+          
+          {/* Timeline Points */}
+          <div className="space-y-6">
+            {[
+              {
+                year: 2025,
+                title: '系统基础期',
+                description: '建立核心习惯，优化生活环境，稳定资源输入',
+                color: '#42F5DC',
+              },
+              {
+                year: 2026,
+                title: '系统优化期',
+                description: '深化系统运行，提升生活品质，拓展体验边界',
+                color: '#6E79FF',
+              },
+              {
+                year: 2027,
+                title: '自由创造期',
+                description: '实现时间自由，持续创造价值，影响他人生活',
+                color: '#BFA36F',
+              },
+            ].map((phase, index) => (
+              <div key={phase.year} className="relative flex gap-4 items-start">
+                <motion.div
+                  className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 z-10"
+                  style={{
+                    backgroundColor: `${phase.color}20`,
+                    border: `2px solid ${phase.color}`,
+                  }}
+                  animate={{
+                    scale: phase.year === currentYear ? [1, 1.1, 1] : 1,
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: phase.year === currentYear ? 9999 : 0,
+                  }}
+                >
+                  <span style={{ color: phase.color }}>{index + 1}</span>
+                </motion.div>
+                <div className="flex-1 pb-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h4 className="text-white">{phase.title}</h4>
+                    <span className="text-sm text-[#C8A777]">({phase.year})</span>
+                  </div>
+                  <p className="text-sm text-[#C8A777]">{phase.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Card>
+
+      {/* Cosmic Insight */}
+      <Card className="bg-gradient-to-r from-[#6E79FF]/10 to-[#BFA36F]/10 border-[#6E79FF]/30 p-4">
         <div className="flex items-start gap-3">
-          <TrendingUp className="w-5 h-5 text-[#42F5DC] flex-shrink-0 mt-0.5" />
+          <Sparkles className="w-5 h-5 text-[#6E79FF] flex-shrink-0 mt-0.5" />
           <div className="text-sm text-[#C8A777]">
-            <span className="text-[#42F5DC]">路径原则：</span>
-            循序渐进 · 不逼迫自己 · 跟随召唤 · 信任时机 · 享受过程
+            <span className="text-[#6E79FF]">宇宙法则：</span>
+            {' '}系统 → 习惯 → 品质 → 自由 · 每一年都是下一年的基础 · 信任过程
           </div>
         </div>
       </Card>

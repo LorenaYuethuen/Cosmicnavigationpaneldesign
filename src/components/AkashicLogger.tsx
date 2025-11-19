@@ -1,37 +1,15 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { BookOpen, Plus, Sparkles, Calendar, Tag, TrendingUp } from 'lucide-react';
+import { BookOpen, Plus, Sparkles, Calendar, Tag, TrendingUp, Zap } from 'lucide-react';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
-
-interface LogEntry {
-  id: string;
-  date: Date;
-  energy: 'high' | 'medium' | 'low';
-  actions: string[];
-  synchronicity: string;
-  bodyFeedback: string;
-  inspiration: string;
-  nextCall: string;
-}
+import { useLifeSystem, EnergyLevel } from '../contexts/LifeSystemContext';
 
 export function AkashicLogger() {
-  const [logs, setLogs] = useState<LogEntry[]>([
-    {
-      id: '1',
-      date: new Date(),
-      energy: 'high',
-      actions: ['力量训练', '完成项目设计'],
-      synchronicity: '在咖啡馆遇到了一位设计师，聊天很投机',
-      bodyFeedback: '训练后感觉充满活力',
-      inspiration: '想要探索更多Wabi-Sabi美学',
-      nextCall: '开始新的摄影项目',
-    },
-  ]);
-
+  const { logs, addLog, currentEnergy, stats, intentions } = useLifeSystem();
   const [showNewLog, setShowNewLog] = useState(false);
   const [newLog, setNewLog] = useState({
-    energy: 'medium' as const,
+    energy: 'medium' as EnergyLevel,
     actions: '',
     synchronicity: '',
     bodyFeedback: '',
@@ -43,17 +21,24 @@ export function AkashicLogger() {
     high: '#42F5DC',
     medium: '#6E79FF',
     low: '#BFA36F',
+    crash: '#FF6B6B',
+    lowpool: '#FFB84D',
+    create: '#B794F6',
+    reset: '#4ECDC4',
   };
 
   const energyLabels = {
     high: '高能',
     medium: '中能',
     low: '低能',
+    crash: '崩溃',
+    lowpool: '低池',
+    create: '创造',
+    reset: '重启',
   };
 
   const createLog = () => {
-    const entry: LogEntry = {
-      id: Date.now().toString(),
+    const entry = {
       date: new Date(),
       energy: newLog.energy,
       actions: newLog.actions.split('\n').filter((a) => a.trim()),
@@ -63,9 +48,9 @@ export function AkashicLogger() {
       nextCall: newLog.nextCall,
     };
 
-    setLogs([entry, ...logs]);
+    addLog(entry);
     setNewLog({
-      energy: 'medium',
+      energy: currentEnergy || 'medium',
       actions: '',
       synchronicity: '',
       bodyFeedback: '',
@@ -77,6 +62,17 @@ export function AkashicLogger() {
 
   const quickLog = () => {
     setShowNewLog(true);
+    // 自动填充当前能量
+    if (currentEnergy) {
+      setNewLog(prev => ({ ...prev, energy: currentEnergy }));
+    }
+    
+    // 自动建议今日动作（基于活跃意图）
+    const activeIntentions = intentions.filter(i => i.status === 'active');
+    if (activeIntentions.length > 0 && !newLog.actions) {
+      const suggestedActions = activeIntentions.slice(0, 3).map(i => i.text).join('\n');
+      setNewLog(prev => ({ ...prev, actions: suggestedActions }));
+    }
   };
 
   return (
@@ -90,6 +86,16 @@ export function AkashicLogger() {
             </span>
           </h2>
           <p className="text-[#C8A777]">记录宇宙信号与生命节奏</p>
+          {currentEnergy && (
+            <Badge className="mt-2" style={{
+              backgroundColor: `${energyColors[currentEnergy]}20`,
+              color: energyColors[currentEnergy],
+              borderColor: `${energyColors[currentEnergy]}40`,
+            }}>
+              <Zap className="w-3 h-3 mr-1" />
+              当前能量：{energyLabels[currentEnergy]}
+            </Badge>
+          )}
         </div>
         <motion.button
           onClick={quickLog}
@@ -103,8 +109,29 @@ export function AkashicLogger() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
-        {(['high', 'medium', 'low'] as const).map((level) => {
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card className="bg-[#0B1C26]/60 border-[#42F5DC]/30 p-4 text-center">
+          <div
+            className="text-2xl mb-1"
+            style={{ color: '#42F5DC', fontFamily: 'Space Grotesk, sans-serif' }}
+          >
+            {stats.currentStreak}
+          </div>
+          <div className="text-xs text-[#C8A777]">连续天数</div>
+          {stats.currentStreak >= 7 && (
+            <div className="text-xs text-[#FFB84D] mt-1">🔥</div>
+          )}
+        </Card>
+        <Card className="bg-[#0B1C26]/60 border-[#6E79FF]/30 p-4 text-center">
+          <div
+            className="text-2xl mb-1"
+            style={{ color: '#6E79FF', fontFamily: 'Space Grotesk, sans-serif' }}
+          >
+            {stats.totalLogs}
+          </div>
+          <div className="text-xs text-[#C8A777]">总日志数</div>
+        </Card>
+        {(['high', 'low'] as const).map((level) => {
           const count = logs.filter((log) => log.energy === level).length;
           return (
             <Card
@@ -138,12 +165,12 @@ export function AkashicLogger() {
                 {/* Energy Selection */}
                 <div>
                   <label className="block text-white mb-2 text-sm">今日能量</label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {(['high', 'medium', 'low'] as const).map((level) => (
+                  <div className="grid grid-cols-3 md:grid-cols-7 gap-2">
+                    {(['high', 'medium', 'low', 'crash', 'lowpool', 'create', 'reset'] as const).map((level) => (
                       <button
                         key={level}
                         onClick={() => setNewLog({ ...newLog, energy: level })}
-                        className={`p-3 rounded-lg border-2 transition-all ${
+                        className={`p-3 rounded-lg border-2 transition-all text-xs ${
                           newLog.energy === level
                             ? 'border-current bg-white/10'
                             : 'border-white/10 hover:border-white/20'
@@ -160,13 +187,20 @@ export function AkashicLogger() {
 
                 {/* Actions */}
                 <div>
-                  <label className="block text-white mb-2 text-sm">今日动作（每行一个）</label>
+                  <label className="block text-white mb-2 text-sm flex items-center gap-2">
+                    今日动作（每行一个）
+                    {intentions.filter(i => i.status === 'active').length > 0 && (
+                      <Badge className="bg-[#42F5DC]/20 text-[#42F5DC] border-[#42F5DC]/30 text-xs">
+                        已关联{intentions.filter(i => i.status === 'active').length}个活跃意图
+                      </Badge>
+                    )}
+                  </label>
                   <textarea
                     value={newLog.actions}
                     onChange={(e) => setNewLog({ ...newLog, actions: e.target.value })}
                     placeholder="力量训练&#10;完成项目&#10;冥想20分钟"
                     className="w-full bg-[#04070F]/60 border border-white/20 rounded-lg px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:border-[#42F5DC]/50 resize-none"
-                    rows={3}
+                    rows={4}
                   />
                 </div>
 

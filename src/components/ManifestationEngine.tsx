@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { Sparkles, Target, Compass, Zap, CheckCircle2, Circle } from 'lucide-react';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
+import { useLifeSystem } from '../contexts/LifeSystemContext';
 
 interface Intention {
   id: string;
@@ -20,52 +21,19 @@ const areaConfig = {
 };
 
 export function ManifestationEngine() {
-  const [intentions, setIntentions] = useState<Intention[]>([
-    {
-      id: '1',
-      text: '每周完成3次力量训练',
-      area: 'body',
-      status: 'active',
-      createdAt: new Date(),
-    },
-    {
-      id: '2',
-      text: '探索一个新的城市空间',
-      area: 'space',
-      status: 'active',
-      createdAt: new Date(),
-    },
-  ]);
-
+  const { intentions, addIntention, toggleIntention, currentEnergy } = useLifeSystem();
   const [newIntention, setNewIntention] = useState('');
   const [selectedArea, setSelectedArea] = useState<keyof typeof areaConfig>('body');
 
-  const addIntention = () => {
+  const handleAddIntention = () => {
     if (!newIntention.trim()) return;
 
-    const intention: Intention = {
-      id: Date.now().toString(),
+    addIntention({
       text: newIntention,
       area: selectedArea,
       status: 'active',
-      createdAt: new Date(),
-    };
-
-    setIntentions([intention, ...intentions]);
+    });
     setNewIntention('');
-  };
-
-  const toggleStatus = (id: string) => {
-    setIntentions(
-      intentions.map((item) =>
-        item.id === id
-          ? {
-              ...item,
-              status: item.status === 'completed' ? 'active' : 'completed',
-            }
-          : item
-      )
-    );
   };
 
   const activeCount = intentions.filter((i) => i.status === 'active').length;
@@ -96,6 +64,11 @@ export function ManifestationEngine() {
           </span>
         </h2>
         <p className="text-[#C8A777]">设定意图，让宇宙为你工作</p>
+        {currentEnergy && (
+          <Badge className="mt-2 bg-[#42F5DC]/20 text-[#42F5DC] border-[#42F5DC]/30">
+            当前能量：{currentEnergy}
+          </Badge>
+        )}
       </div>
 
       {/* Stats */}
@@ -152,12 +125,12 @@ export function ManifestationEngine() {
             type="text"
             value={newIntention}
             onChange={(e) => setNewIntention(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && addIntention()}
+            onKeyDown={(e) => e.key === 'Enter' && handleAddIntention()}
             placeholder="输入你的意图..."
             className="flex-1 bg-[#04070F]/60 border border-white/20 rounded-lg px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:border-[#42F5DC]/50"
           />
           <motion.button
-            onClick={addIntention}
+            onClick={handleAddIntention}
             className="px-6 py-3 rounded-lg bg-gradient-to-r from-[#42F5DC] to-[#6E79FF] text-[#04070F]"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -194,7 +167,7 @@ export function ManifestationEngine() {
                   style={{
                     borderColor: intention.status === 'completed' ? '#28D5C6' : config.color,
                   }}
-                  onClick={() => toggleStatus(intention.id)}
+                  onClick={() => toggleIntention(intention.id)}
                 >
                   <div className="flex items-start gap-4">
                     <motion.div

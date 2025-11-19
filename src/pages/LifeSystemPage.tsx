@@ -13,6 +13,8 @@ import { ManifestationEngine } from '../components/ManifestationEngine';
 import { AkashicLogger } from '../components/AkashicLogger';
 import { ThreeYearPath } from '../components/ThreeYearPath';
 import { BodyFrequency } from '../components/BodyFrequency';
+import { SystemDashboard } from '../components/SystemDashboard';
+import { useLifeSystem } from '../contexts/LifeSystemContext';
 
 export function LifeSystemPage() {
   // Check if there's a hash for initial tab (e.g., #system#body)
@@ -173,112 +175,7 @@ export function LifeSystemPage() {
 
           {/* Tab: Core System */}
           <TabsContent value="core" className="space-y-8">
-            <div className="text-center mb-8">
-              <h2 className="text-3xl mb-4" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
-                <span className="bg-gradient-to-r from-[#42F5DC] to-[#BFA36F] bg-clip-text text-transparent">
-                  系统总览
-                </span>
-              </h2>
-              <p className="text-[#C8A777]">理解系统架构，掌控人生运行机制</p>
-            </div>
-
-            {/* Interactive Layers */}
-            <div>
-              <h3 className="text-2xl text-[#42F5DC] mb-6">系统层级</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {[
-                  { id: 'body', icon: Dumbbell, title: '身体层', subtitle: '习惯与维护', desc: '通过精妙的日常习惯，维护身体这个高级仪器' },
-                  { id: 'mind', icon: Heart, title: '心智层', subtitle: '爱好与创造', desc: '通过多样的体验系统，滋养心灵和创造力' },
-                  { id: 'home', icon: Home, title: '知识层', subtitle: '环境与成长', desc: '通过优质的居住环境，支持系统持续运行' },
-                ].map((layer) => (
-                  <Card
-                    key={layer.id}
-                    className="bg-[#0B1C26]/40 border-[#28D5C6]/20 p-6 hover:border-[#42F5DC]/50 cursor-pointer transition-all group"
-                    onClick={() => setActiveTab(layer.id)}
-                  >
-                    <layer.icon className="w-10 h-10 text-[#42F5DC] mb-4" />
-                    <h4 className="text-xl text-white mb-2">{layer.title}</h4>
-                    <p className="text-[#BFA36F] text-sm mb-3">{layer.subtitle}</p>
-                    <p className="text-[#C8A777] text-sm mb-4">{layer.desc}</p>
-                    <div className="text-[#42F5DC] text-sm opacity-0 group-hover:opacity-100 transition-opacity">
-                      查看详情 →
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            </div>
-
-            {/* System Operation */}
-            <div>
-              <h3 className="text-2xl text-[#42F5DC] mb-6">系统运行机制</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-                {[
-                  { icon: Zap, title: '精力', desc: '生命能量', note: 'P(physical) M(mental) S(social)' },
-                  { icon: Clock, title: '时间', desc: '可支配时长', note: '工作日/周末/假期' },
-                  { icon: DollarSign, title: '金钱', desc: '资源配置', note: '爱服美役/学/旅/居/存' },
-                  { icon: Sparkles, title: '体验', desc: '人生质量', note: '快乐 × 成长 × 意义' },
-                ].map((item) => (
-                  <Card key={item.title} className="bg-[#0F3840]/40 border-[#28D5C6]/20 p-6">
-                    <item.icon className="w-8 h-8 text-[#42F5DC] mb-3" />
-                    <h4 className="text-white text-lg mb-2">{item.title}</h4>
-                    <p className="text-[#C8A777] text-sm mb-2">{item.desc}</p>
-                    <p className="text-[#7CE8FF] text-xs">{item.note}</p>
-                  </Card>
-                ))}
-              </div>
-              <div className="bg-gradient-to-r from-[#0F3840]/60 to-[#0B1C26]/60 border border-[#42F5DC]/30 rounded-2xl p-6 text-center">
-                <div className="text-[#C8A777] text-sm mb-2">系统循环</div>
-                <div className="text-[#42F5DC] text-lg">
-                  精力 → 时间 → 金钱 → 体验 → 精力补充
-                </div>
-              </div>
-            </div>
-
-            {/* Core Formula */}
-            <div>
-              <h3 className="text-2xl text-[#42F5DC] mb-6">核心公式</h3>
-              <div className="bg-gradient-to-br from-[#0F3840]/60 to-[#0B1C26]/60 border-2 border-[#42F5DC]/30 rounded-2xl p-8 mb-6 text-center">
-                <div className="text-3xl md:text-4xl text-[#42F5DC] font-mono mb-4">
-                  精力 × (时间 / 爱好) × 金钱 = 体验
-                </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {[
-                  { title: '公式解读', desc: '体验质量取决于精力投入、时间分配和资源配置的乘积效应' },
-                  { title: '优化方向', desc: '提高精力质量、优化时间管理、合理分配金钱' },
-                  { title: '执行原则', desc: '系统性思考、动态调整、持续优化' },
-                ].map((item) => (
-                  <Card key={item.title} className="bg-[#0B1C26]/40 border-[#28D5C6]/20 p-6">
-                    <h4 className="text-white text-lg mb-2">{item.title}</h4>
-                    <p className="text-[#C8A777] text-sm">{item.desc}</p>
-                  </Card>
-                ))}
-              </div>
-            </div>
-
-            {/* Quick Actions */}
-            <div>
-              <h3 className="text-2xl text-[#42F5DC] mb-6">快速启动</h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {[
-                  { label: '能量扫描', tab: 'energy', icon: Zap, color: 'from-[#42F5DC] to-[#28D5C6]' },
-                  { label: '显化引擎', tab: 'dashboard', icon: Sparkles, color: 'from-[#6E79FF] to-[#42F5DC]' },
-                  { label: '阿卡西日志', tab: 'akashic', icon: BookOpen, color: 'from-[#BFA36F] to-[#6E79FF]' },
-                  { label: '三年路径', tab: 'path', icon: Map, color: 'from-[#28D5C6] to-[#BFA36F]' },
-                ].map((action) => (
-                  <motion.button
-                    key={action.label}
-                    onClick={() => setActiveTab(action.tab)}
-                    className={`bg-gradient-to-r ${action.color} text-[#04070F] px-6 py-4 rounded-xl transition-all flex items-center justify-center gap-2 font-medium`}
-                    whileHover={{ scale: 1.05, y: -2 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <action.icon className="w-5 h-5" />
-                    {action.label}
-                  </motion.button>
-                ))}
-              </div>
-            </div>
+            <SystemDashboard />
           </TabsContent>
 
           {/* Tab 1: Body System */}

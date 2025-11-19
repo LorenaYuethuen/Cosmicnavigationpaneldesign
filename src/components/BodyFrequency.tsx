@@ -1,237 +1,371 @@
-import { motion } from 'motion/react';
-import { Dumbbell, Waves, Zap, Wind, Anchor, Sparkles } from 'lucide-react';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Dumbbell, Plus, Mountain, Waves, Activity, User, X, TrendingUp } from 'lucide-react';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
+import { Progress } from './ui/progress';
+import { useLifeSystem } from '../contexts/LifeSystemContext';
 
-interface FrequencyType {
-  id: string;
-  name: string;
-  icon: any;
-  color: string;
-  description: string;
-  effect: string;
-  activities: string[];
-}
+const workoutTypes = {
+  strength: { label: '力量训练', icon: Dumbbell, color: '#42F5DC', timeRange: '1-2h', frequency: '3-4次/周' },
+  climbing: { label: '攀岩', icon: Mountain, color: '#6E79FF', timeRange: '2h', frequency: '1次/周' },
+  swimming: { label: '游泳', icon: Waves, color: '#28D5C6', timeRange: '1h', frequency: '1-2次/周' },
+  cardio: { label: '有氧运动', icon: Activity, color: '#BFA36F', timeRange: '30-45min', frequency: '2-3次/周' },
+  yoga: { label: '瑜伽/拉伸', icon: User, color: '#B794F6', timeRange: '30-60min', frequency: '2-3次/周' },
+};
+
+type WorkoutType = keyof typeof workoutTypes;
 
 export function BodyFrequency() {
-  const frequencies: FrequencyType[] = [
-    {
-      id: 'grounding',
-      name: 'Grounding',
-      icon: Anchor,
-      color: '#BFA36F',
-      description: '扎根频率',
-      effect: '身体稳定 · 情绪平静 · 回归中心',
-      activities: ['力量训练', '深蹲', '硬拉', '瑜伽（站立体式）', '太极'],
-    },
-    {
-      id: 'flow',
-      name: 'Flow',
-      icon: Waves,
-      color: '#28D5C6',
-      description: '流动频率',
-      effect: '能量循环 · 释放堵塞 · 身心合一',
-      activities: ['游泳', '流瑜伽', '舞蹈', '太极', '气功'],
-    },
-    {
-      id: 'lightness',
-      name: 'Lightness',
-      icon: Wind,
-      color: '#42F5DC',
-      description: '轻盈频率',
-      effect: '身体轻盈 · 心情愉悦 · 灵感涌现',
-      activities: ['慢跑', '快走', '游泳', '拉伸', '普拉提'],
-    },
-    {
-      id: 'clearing',
-      name: 'Clearing',
-      icon: Sparkles,
-      color: '#6E79FF',
-      description: '清理频率',
-      effect: '排毒净化 · 能量更新 · 系统重启',
-      activities: ['HIIT', '有氧运动', '热瑜伽', '跑步', '单车'],
-    },
-    {
-      id: 'sync',
-      name: 'Sync',
-      icon: Zap,
-      color: '#B794F6',
-      description: '同步频率',
-      effect: '身心对齐 · 直觉增强 · 宇宙连接',
-      activities: ['攀岩', '冥想运动', '瑜伽', '自然行走', '呼吸练习'],
-    },
-  ];
+  const { workouts, addWorkout, stats, currentEnergy } = useLifeSystem();
+  const [showAddWorkout, setShowAddWorkout] = useState(false);
+  const [newWorkout, setNewWorkout] = useState({
+    type: 'strength' as WorkoutType,
+    duration: 60,
+    intensity: 'medium' as 'low' | 'medium' | 'high',
+    notes: '',
+  });
+
+  const handleAddWorkout = () => {
+    addWorkout({
+      ...newWorkout,
+      date: new Date(),
+    });
+    setNewWorkout({
+      type: 'strength',
+      duration: 60,
+      intensity: 'medium',
+      notes: '',
+    });
+    setShowAddWorkout(false);
+  };
+
+  // 计算本周各类运动次数
+  const weekAgo = new Date();
+  weekAgo.setDate(weekAgo.getDate() - 7);
+  const weeklyWorkoutsByType = Object.keys(workoutTypes).reduce((acc, type) => {
+    acc[type as WorkoutType] = workouts.filter(
+      w => w.type === type && w.date >= weekAgo
+    ).length;
+    return acc;
+  }, {} as Record<WorkoutType, number>);
+
+  const intensityColors = {
+    low: '#BFA36F',
+    medium: '#6E79FF',
+    high: '#42F5DC',
+  };
+
+  const intensityLabels = {
+    low: '低强度',
+    medium: '中强度',
+    high: '高强度',
+  };
+
+  // 本周运动目标
+  const weeklyTarget = 4;
+  const weeklyProgress = (stats.weeklyWorkouts / weeklyTarget) * 100;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="text-center">
-        <motion.div
-          className="inline-flex items-center gap-2 mb-4"
-          animate={{
-            rotate: [0, 5, -5, 0],
-          }}
-          transition={{
-            duration: 4,
-            repeat: 9999,
-            ease: 'easeInOut',
-          }}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl mb-2" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+            <span className="bg-gradient-to-r from-[#42F5DC] via-[#28D5C6] to-[#BFA36F] bg-clip-text text-transparent">
+              五频率运动系统
+            </span>
+          </h2>
+          <p className="text-[#C8A777]">通过运动调节身体频率，释放内啡肽</p>
+        </div>
+        <motion.button
+          onClick={() => setShowAddWorkout(true)}
+          className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#42F5DC] to-[#28D5C6] text-[#04070F]"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#42F5DC] to-[#6E79FF] flex items-center justify-center">
-            <Dumbbell className="w-6 h-6 text-[#04070F]" />
-          </div>
-        </motion.div>
-        <h2 className="text-3xl mb-2" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
-          <span className="bg-gradient-to-r from-[#42F5DC] via-[#6E79FF] to-[#BFA36F] bg-clip-text text-transparent">
-            五频率运动系统
-          </span>
-        </h2>
-        <p className="text-[#C8A777]">身体是宇宙天线，运动即调频</p>
+          <Plus className="w-5 h-5" />
+          <span className="hidden sm:inline">记录运动</span>
+        </motion.button>
       </div>
 
-      {/* Frequency Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {frequencies.map((freq, index) => {
-          const Icon = freq.icon;
+      {/* Weekly Progress */}
+      <Card className="bg-gradient-to-br from-[#0B1C26]/80 to-[#0F3840]/60 border-[#42F5DC]/30 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-xl text-white mb-1">本周运动进度</h3>
+            <p className="text-sm text-[#C8A777]">目标：每周 {weeklyTarget} 次</p>
+          </div>
+          <div className="text-right">
+            <div className="text-3xl text-[#42F5DC]" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+              {stats.weeklyWorkouts}/{weeklyTarget}
+            </div>
+            <div className="text-xs text-[#C8A777]">
+              {weeklyProgress >= 100 ? '🎉 已完成' : `还需 ${weeklyTarget - stats.weeklyWorkouts} 次`}
+            </div>
+          </div>
+        </div>
+        <Progress value={weeklyProgress} className="h-3" />
+        {currentEnergy && (
+          <div className="mt-4 text-sm text-[#C8A777]">
+            💡 当前能量状态：
+            {(currentEnergy === 'high' || currentEnergy === 'create') && ' 适合高强度训练'}
+            {(currentEnergy === 'medium' || currentEnergy === 'reset') && ' 适合常规训练'}
+            {(currentEnergy === 'low' || currentEnergy === 'lowpool') && ' 建议轻度运动'}
+            {currentEnergy === 'crash' && ' 建议休息为主'}
+          </div>
+        )}
+      </Card>
+
+      {/* Five Frequency Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {(Object.keys(workoutTypes) as WorkoutType[]).map((type) => {
+          const config = workoutTypes[type];
+          const Icon = config.icon;
+          const weeklyCount = weeklyWorkoutsByType[type];
+          
           return (
             <motion.div
-              key={freq.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
+              key={type}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              whileHover={{ scale: 1.03 }}
             >
               <Card
-                className="bg-[#0B1C26]/60 border-2 p-6 hover:bg-[#0B1C26]/80 transition-all group h-full"
-                style={{ borderColor: `${freq.color}40` }}
+                className="bg-[#0B1C26]/60 border-2 p-5 hover:bg-[#0B1C26]/80 transition-all cursor-pointer group"
+                style={{ borderColor: `${config.color}40` }}
+                onClick={() => {
+                  setNewWorkout({ ...newWorkout, type });
+                  setShowAddWorkout(true);
+                }}
               >
-                {/* Icon & Name */}
-                <div className="flex items-center gap-4 mb-4">
-                  <motion.div
-                    className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
-                    style={{ backgroundColor: `${freq.color}20` }}
-                    whileHover={{ scale: 1.1, rotate: 10 }}
+                <div className="flex items-start justify-between mb-4">
+                  <div
+                    className="w-12 h-12 rounded-xl flex items-center justify-center"
+                    style={{ backgroundColor: `${config.color}20` }}
                   >
-                    <Icon className="w-7 h-7" style={{ color: freq.color }} />
-                  </motion.div>
-                  <div>
-                    <div
-                      className="text-xl mb-1"
-                      style={{ color: freq.color, fontFamily: 'Space Grotesk, sans-serif' }}
-                    >
-                      {freq.name}
-                    </div>
-                    <div className="text-sm text-[#C8A777]">{freq.description}</div>
+                    <Icon className="w-6 h-6" style={{ color: config.color }} />
                   </div>
-                </div>
-
-                {/* Effect */}
-                <div className="mb-4 pb-4 border-b border-white/10">
                   <Badge
-                    className="mb-2"
                     style={{
-                      backgroundColor: `${freq.color}20`,
-                      color: freq.color,
-                      borderColor: `${freq.color}40`,
+                      backgroundColor: `${config.color}20`,
+                      color: config.color,
+                      borderColor: `${config.color}40`,
                     }}
                   >
-                    效果
+                    本周 {weeklyCount}次
                   </Badge>
-                  <p className="text-sm text-[#C8A777]">{freq.effect}</p>
                 </div>
-
-                {/* Activities */}
-                <div>
-                  <div className="text-white text-sm mb-2">推荐运动</div>
-                  <div className="space-y-2">
-                    {freq.activities.map((activity, i) => (
-                      <div key={i} className="flex items-center gap-2 text-sm text-[#C8A777]">
-                        <div
-                          className="w-1.5 h-1.5 rounded-full"
-                          style={{ backgroundColor: freq.color }}
-                        />
-                        {activity}
-                      </div>
-                    ))}
-                  </div>
+                <h4 className="text-lg text-white mb-2">{config.label}</h4>
+                <div className="text-xs text-[#C8A777] space-y-1">
+                  <div>⏱ {config.timeRange}</div>
+                  <div>📅 {config.frequency}</div>
                 </div>
-
-                {/* Hover Glow */}
-                <div
-                  className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-10 transition-opacity pointer-events-none"
-                  style={{ backgroundColor: freq.color }}
-                />
               </Card>
             </motion.div>
           );
         })}
       </div>
 
-      {/* Usage Guide */}
-      <Card className="bg-gradient-to-br from-[#0F3840]/60 to-[#0B1C26]/60 border-[#42F5DC]/30 p-6">
-        <h3 className="text-xl text-[#42F5DC] mb-4 flex items-center gap-2">
-          <Sparkles className="w-5 h-5" />
-          使用指南
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-[#C8A777]">
-          <div>
-            <div className="text-white mb-2">根据需求选择频率</div>
-            <div className="space-y-1">
-              <div>• 焦虑不安 → Grounding</div>
-              <div>• 能量堵塞 → Flow</div>
-              <div>• 沉重疲惫 → Lightness</div>
-              <div>• 需要清理 → Clearing</div>
-              <div>• 失去连接 → Sync</div>
-            </div>
-          </div>
-          <div>
-            <div className="text-white mb-2">频率叠加</div>
-            <div className="space-y-1">
-              <div>• 可以组合多个频率</div>
-              <div>• 一次训练包含多种效果</div>
-              <div>• 跟随身体直觉选择</div>
-              <div>• 不必追求完美执行</div>
-              <div>• 享受过程即是调频</div>
-            </div>
-          </div>
-        </div>
-      </Card>
-
-      {/* Weekly Schedule Example */}
-      <Card className="bg-[#0B1C26]/60 border-[#28D5C6]/30 p-6">
-        <h3 className="text-xl text-white mb-4">示例：一周频率安排</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-3">
-          {[
-            { day: '周一', freq: 'Grounding', activity: '力量训练', color: '#BFA36F' },
-            { day: '周二', freq: 'Flow', activity: '游泳', color: '#28D5C6' },
-            { day: '周三', freq: 'Lightness', activity: '慢跑', color: '#42F5DC' },
-            { day: '周四', freq: 'Clearing', activity: 'HIIT', color: '#6E79FF' },
-            { day: '周五', freq: 'Sync', activity: '瑜伽', color: '#B794F6' },
-            { day: '周六', freq: 'Flow', activity: '攀岩', color: '#28D5C6' },
-            { day: '周日', freq: 'Lightness', activity: '拉伸', color: '#42F5DC' },
-          ].map((item) => (
-            <div
-              key={item.day}
-              className="p-3 rounded-lg border-2 transition-all hover:scale-105"
-              style={{ borderColor: `${item.color}40`, backgroundColor: `${item.color}10` }}
+      {/* Add Workout Modal */}
+      <AnimatePresence>
+        {showAddWorkout && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowAddWorkout(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-md"
             >
-              <div className="text-white text-sm mb-1">{item.day}</div>
-              <div className="text-xs" style={{ color: item.color }}>
-                {item.freq}
-              </div>
-              <div className="text-xs text-[#C8A777] mt-1">{item.activity}</div>
-            </div>
-          ))}
-        </div>
-      </Card>
+              <Card className="bg-gradient-to-br from-[#0B1C26] to-[#0F3840] border-[#42F5DC]/30 p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-2xl text-white">记录运动</h3>
+                  <button
+                    onClick={() => setShowAddWorkout(false)}
+                    className="text-[#C8A777] hover:text-white transition-colors"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
 
-      {/* Theory */}
-      <Card className="bg-gradient-to-r from-[#42F5DC]/10 to-[#6E79FF]/10 border-[#42F5DC]/30 p-6">
+                <div className="space-y-4">
+                  {/* Workout Type */}
+                  <div>
+                    <label className="block text-white mb-2 text-sm">运动类型</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {(Object.keys(workoutTypes) as WorkoutType[]).map((type) => {
+                        const config = workoutTypes[type];
+                        const Icon = config.icon;
+                        return (
+                          <button
+                            key={type}
+                            onClick={() => setNewWorkout({ ...newWorkout, type })}
+                            className={`p-3 rounded-lg border-2 transition-all flex items-center gap-2 ${
+                              newWorkout.type === type
+                                ? 'border-current bg-white/10'
+                                : 'border-white/10 hover:border-white/20'
+                            }`}
+                            style={{
+                              color: newWorkout.type === type ? config.color : '#C8A777',
+                            }}
+                          >
+                            <Icon className="w-4 h-4" />
+                            <span className="text-xs">{config.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Duration */}
+                  <div>
+                    <label className="block text-white mb-2 text-sm">时长（分钟）</label>
+                    <input
+                      type="number"
+                      value={newWorkout.duration}
+                      onChange={(e) => setNewWorkout({ ...newWorkout, duration: parseInt(e.target.value) || 0 })}
+                      className="w-full bg-[#04070F]/60 border border-white/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#42F5DC]/50"
+                      min={1}
+                    />
+                  </div>
+
+                  {/* Intensity */}
+                  <div>
+                    <label className="block text-white mb-2 text-sm">强度</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {(['low', 'medium', 'high'] as const).map((intensity) => (
+                        <button
+                          key={intensity}
+                          onClick={() => setNewWorkout({ ...newWorkout, intensity })}
+                          className={`p-3 rounded-lg border-2 transition-all ${
+                            newWorkout.intensity === intensity
+                              ? 'border-current bg-white/10'
+                              : 'border-white/10 hover:border-white/20'
+                          }`}
+                          style={{
+                            color: newWorkout.intensity === intensity ? intensityColors[intensity] : '#C8A777',
+                          }}
+                        >
+                          <div className="text-xs">{intensityLabels[intensity]}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Notes */}
+                  <div>
+                    <label className="block text-white mb-2 text-sm">备注（可选）</label>
+                    <textarea
+                      value={newWorkout.notes}
+                      onChange={(e) => setNewWorkout({ ...newWorkout, notes: e.target.value })}
+                      placeholder="感觉如何？有什么特别的体验？"
+                      className="w-full bg-[#04070F]/60 border border-white/20 rounded-lg px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:border-[#42F5DC]/50 resize-none"
+                      rows={3}
+                    />
+                  </div>
+
+                  {/* Buttons */}
+                  <div className="flex gap-3 pt-2">
+                    <motion.button
+                      onClick={handleAddWorkout}
+                      className="flex-1 py-3 rounded-lg bg-gradient-to-r from-[#42F5DC] to-[#28D5C6] text-[#04070F]"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      保存记录
+                    </motion.button>
+                    <motion.button
+                      onClick={() => setShowAddWorkout(false)}
+                      className="px-6 py-3 rounded-lg border border-white/20 text-white/60 hover:text-white hover:border-white/40 transition-all"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      取消
+                    </motion.button>
+                  </div>
+                </div>
+              </Card>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Recent Workouts */}
+      <div className="space-y-4">
+        <h3 className="text-xl text-white flex items-center gap-2">
+          <TrendingUp className="w-5 h-5 text-[#42F5DC]" />
+          最近运动记录
+        </h3>
+        
+        {workouts.length === 0 ? (
+          <Card className="bg-[#0B1C26]/40 border-[#28D5C6]/20 p-8 text-center">
+            <Dumbbell className="w-12 h-12 text-[#42F5DC]/30 mx-auto mb-3" />
+            <p className="text-[#C8A777]">开始记录你的运动轨迹</p>
+          </Card>
+        ) : (
+          workouts.slice(0, 10).map((workout, index) => {
+            const config = workoutTypes[workout.type];
+            const Icon = config.icon;
+            return (
+              <motion.div
+                key={workout.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+              >
+                <Card className="bg-[#0B1C26]/60 border-2 p-4 hover:bg-[#0B1C26]/80 transition-all"
+                  style={{ borderColor: `${config.color}40` }}
+                >
+                  <div className="flex items-center gap-4">
+                    <div
+                      className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+                      style={{ backgroundColor: `${config.color}20` }}
+                    >
+                      <Icon className="w-5 h-5" style={{ color: config.color }} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="text-white">{config.label}</h4>
+                        <Badge
+                          variant="outline"
+                          style={{
+                            borderColor: `${intensityColors[workout.intensity]}40`,
+                            color: intensityColors[workout.intensity],
+                          }}
+                        >
+                          {intensityLabels[workout.intensity]}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-3 text-xs text-[#C8A777]">
+                        <span>⏱ {workout.duration}分钟</span>
+                        <span>📅 {workout.date.toLocaleDateString('zh-CN')}</span>
+                      </div>
+                      {workout.notes && (
+                        <p className="text-sm text-[#C8A777] mt-2 italic">{workout.notes}</p>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              </motion.div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Tips */}
+      <Card className="bg-gradient-to-r from-[#42F5DC]/10 to-[#28D5C6]/10 border-[#42F5DC]/30 p-4">
         <div className="flex items-start gap-3">
-          <Zap className="w-5 h-5 text-[#42F5DC] flex-shrink-0 mt-0.5" />
+          <Dumbbell className="w-5 h-5 text-[#42F5DC] flex-shrink-0 mt-0.5" />
           <div className="text-sm text-[#C8A777]">
-            <span className="text-[#42F5DC]">天线理论：</span>
-            身体是接收宇宙信号的天线。通过不同频率的运动，我们调整身体频率，从而改变接收到的信号类型。
-            每种运动都在重新校准你的能量场，让你与不同层次的宇宙智慧对齐。
+            <span className="text-[#42F5DC]">运动原则：</span>
+            {' '}规律运动 → 内啡肽分泌 → 情绪稳定 → 自信提升 → 身体健康
           </div>
         </div>
       </Card>
