@@ -67,6 +67,9 @@ interface LifeSystemContextType {
   // 显化引擎
   intentions: Intention[];
   addIntention: (intention: Omit<Intention, 'id' | 'createdAt' | 'energyWhenCreated'>) => void;
+  addIntentionsBatch: (intentions: Array<Omit<Intention, 'id' | 'createdAt' | 'energyWhenCreated'>>) => void;
+  convertIntentionsToLog: () => Omit<LogEntry, 'id'> | null;
+  decomposeYearGoalToIntentions: (goalId: string, quarter: 'q1' | 'q2' | 'q3' | 'q4') => Array<Omit<Intention, 'id' | 'createdAt' | 'energyWhenCreated'>>;
   toggleIntention: (id: string) => void;
   deleteIntention: (id: string) => void;
   
@@ -161,6 +164,76 @@ export function LifeSystemProvider({ children }: { children: ReactNode }) {
       energyWhenCreated: currentEnergy || undefined,
     };
     setIntentions((prev) => [newIntention, ...prev]);
+  };
+
+  // 批量添加意图（用于目标分解）
+  const addIntentionsBatch = (intentions: Array<Omit<Intention, 'id' | 'createdAt' | 'energyWhenCreated'>>) => {
+    const newIntentions = intentions.map((intention, index) => ({
+      ...intention,
+      id: (Date.now() + index).toString(),
+      createdAt: new Date(),
+      energyWhenCreated: currentEnergy || undefined,
+    }));
+    setIntentions((prev) => [...newIntentions, ...prev]);
+  };
+
+  // 一键转换意图为日志
+  const convertIntentionsToLog = () => {
+    const activeIntentions = intentions.filter(i => i.status === 'active');
+    if (activeIntentions.length === 0) return null;
+
+    const logEntry = {
+      date: new Date(),
+      energy: currentEnergy || ('medium' as EnergyLevel),
+      actions: activeIntentions.map(i => i.text),
+      synchronicity: '',
+      bodyFeedback: '',
+      inspiration: '',
+      nextCall: '',
+    };
+
+    return logEntry;
+  };
+
+  // 从年度目标生成月度意图
+  const decomposeYearGoalToIntentions = (goalId: string, quarter: 'q1' | 'q2' | 'q3' | 'q4') => {
+    const goal = yearGoals.find(g => g.id === goalId);
+    if (!goal) return [];
+
+    const milestones = goal.quarters[quarter];
+    const areaMap = {
+      '身体': 'body' as const,
+      '空间': 'space' as const,
+      '灵感': 'inspiration' as const,
+      '工作': 'flow' as const,
+      '运动': 'body' as const,
+      '环境': 'space' as const,
+      '创作': 'inspiration' as const,
+      '学习': 'flow' as const,
+      '收入': 'flow' as const,
+      '旅行': 'space' as const,
+      '社交': 'space' as const,
+      '项目': 'flow' as const,
+    };
+
+    const newIntentions = milestones.map(milestone => {
+      // 智能识别意图领域
+      let area: 'body' | 'space' | 'inspiration' | 'flow' = 'flow';
+      for (const [keyword, mappedArea] of Object.entries(areaMap)) {
+        if (milestone.includes(keyword)) {
+          area = mappedArea;
+          break;
+        }
+      }
+
+      return {
+        text: milestone,
+        area,
+        status: 'pending' as const,
+      };
+    });
+
+    return newIntentions;
   };
 
   // 切换意图状态
@@ -362,6 +435,9 @@ export function LifeSystemProvider({ children }: { children: ReactNode }) {
     setCurrentEnergy,
     intentions,
     addIntention,
+    addIntentionsBatch,
+    convertIntentionsToLog,
+    decomposeYearGoalToIntentions,
     toggleIntention,
     deleteIntention,
     logs,

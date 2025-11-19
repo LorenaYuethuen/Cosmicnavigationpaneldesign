@@ -1,17 +1,9 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import { Sparkles, Target, Compass, Zap, CheckCircle2, Circle } from 'lucide-react';
+import { Sparkles, Target, Compass, Zap, CheckCircle2, Circle, FileText, Rocket } from 'lucide-react';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
 import { useLifeSystem } from '../contexts/LifeSystemContext';
-
-interface Intention {
-  id: string;
-  text: string;
-  area: 'body' | 'space' | 'inspiration' | 'flow';
-  status: 'active' | 'completed' | 'pending';
-  createdAt: Date;
-}
 
 const areaConfig = {
   body: { color: '#42F5DC', label: '身体频率', icon: Zap },
@@ -21,9 +13,10 @@ const areaConfig = {
 };
 
 export function ManifestationEngine() {
-  const { intentions, addIntention, toggleIntention, currentEnergy } = useLifeSystem();
+  const { intentions, addIntention, toggleIntention, currentEnergy, convertIntentionsToLog, addLog } = useLifeSystem();
   const [newIntention, setNewIntention] = useState('');
   const [selectedArea, setSelectedArea] = useState<keyof typeof areaConfig>('body');
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const handleAddIntention = () => {
     if (!newIntention.trim()) return;
@@ -36,8 +29,18 @@ export function ManifestationEngine() {
     setNewIntention('');
   };
 
+  const handleQuickLog = () => {
+    const logData = convertIntentionsToLog();
+    if (logData) {
+      addLog(logData);
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+    }
+  };
+
   const activeCount = intentions.filter((i) => i.status === 'active').length;
   const completedCount = intentions.filter((i) => i.status === 'completed').length;
+  const pendingCount = intentions.filter((i) => i.status === 'pending').length;
 
   return (
     <div className="space-y-6">
@@ -72,12 +75,18 @@ export function ManifestationEngine() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         <Card className="bg-[#0B1C26]/60 border-[#42F5DC]/30 p-4 text-center">
           <div className="text-3xl text-[#42F5DC] mb-1" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
             {activeCount}
           </div>
           <div className="text-sm text-[#C8A777]">活跃意图</div>
+        </Card>
+        <Card className="bg-[#0B1C26]/60 border-[#6E79FF]/30 p-4 text-center">
+          <div className="text-3xl text-[#6E79FF] mb-1" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+            {pendingCount}
+          </div>
+          <div className="text-sm text-[#C8A777]">待启动</div>
         </Card>
         <Card className="bg-[#0B1C26]/60 border-[#28D5C6]/30 p-4 text-center">
           <div className="text-3xl text-[#28D5C6] mb-1" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
@@ -86,6 +95,55 @@ export function ManifestationEngine() {
           <div className="text-sm text-[#C8A777]">已显化</div>
         </Card>
       </div>
+
+      {/* Quick Log Button */}
+      {activeCount > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <Card className="bg-gradient-to-r from-[#6E79FF]/10 to-[#42F5DC]/10 border-[#6E79FF]/30 p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-start gap-3">
+                <FileText className="w-5 h-5 text-[#6E79FF] flex-shrink-0 mt-0.5" />
+                <div>
+                  <div className="text-white mb-1">✨ 自动化联动</div>
+                  <div className="text-sm text-[#C8A777]">
+                    将 {activeCount} 个活跃意图一键转换为今日阿卡西日志
+                  </div>
+                </div>
+              </div>
+              <motion.button
+                onClick={handleQuickLog}
+                className="px-6 py-2 rounded-lg bg-gradient-to-r from-[#6E79FF] to-[#42F5DC] text-white flex items-center gap-2"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Rocket className="w-4 h-4" />
+                一键生成
+              </motion.button>
+            </div>
+          </Card>
+        </motion.div>
+      )}
+
+      {/* Success Message */}
+      {showSuccess && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+        >
+          <Card className="bg-gradient-to-r from-[#42F5DC]/20 to-[#28D5C6]/20 border-[#42F5DC]/50 p-4">
+            <div className="flex items-center gap-3">
+              <CheckCircle2 className="w-5 h-5 text-[#42F5DC]" />
+              <div className="text-[#42F5DC]">
+                ✅ 日志已自动生成！前往"阿卡西日志"标签查看和编辑
+              </div>
+            </div>
+          </Card>
+        </motion.div>
+      )}
 
       {/* Add New Intention */}
       <Card className="bg-gradient-to-br from-[#0B1C26]/80 to-[#0F3840]/60 border-[#42F5DC]/30 p-6">

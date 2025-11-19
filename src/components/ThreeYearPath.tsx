@@ -1,14 +1,36 @@
 import { motion } from 'motion/react';
-import { Map, TrendingUp, Target, Sparkles, CheckCircle2, Circle } from 'lucide-react';
+import { Map, TrendingUp, Target, Sparkles, CheckCircle2, Circle, Wand2, ArrowRight } from 'lucide-react';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
 import { Progress } from './ui/progress';
 import { useLifeSystem } from '../contexts/LifeSystemContext';
+import { useState } from 'react';
 
 export function ThreeYearPath() {
-  const { yearGoals, updateYearGoal } = useLifeSystem();
+  const { yearGoals, updateYearGoal, decomposeYearGoalToIntentions, addIntentionsBatch } = useLifeSystem();
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth() + 1; // 1-12
+  
+  // 确定当前季度
+  const getCurrentQuarter = (): 'q1' | 'q2' | 'q3' | 'q4' => {
+    if (currentMonth <= 3) return 'q1';
+    if (currentMonth <= 6) return 'q2';
+    if (currentMonth <= 9) return 'q3';
+    return 'q4';
+  };
+
+  const handleDecomposeGoal = (goalId: string, quarter: 'q1' | 'q2' | 'q3' | 'q4') => {
+    const newIntentions = decomposeYearGoalToIntentions(goalId, quarter);
+    if (newIntentions.length > 0) {
+      addIntentionsBatch(newIntentions);
+      setSuccessMessage(`✨ 已将 ${newIntentions.length} 个季度目标转换为待启动意图！`);
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -150,6 +172,17 @@ export function ThreeYearPath() {
                             </div>
                           ))}
                         </div>
+                        {isCurrentYear && quarter === getCurrentQuarter() && (
+                          <div className="mt-4">
+                            <button
+                              className="bg-gradient-to-r from-[#42F5DC] to-[#6E79FF] text-white px-3 py-1 rounded-full text-sm flex items-center gap-1"
+                              onClick={() => handleDecomposeGoal(goal.id, quarter)}
+                            >
+                              <Wand2 className="w-4 h-4" />
+                              分解目标
+                            </button>
+                          </div>
+                        )}
                       </Card>
                     );
                   })}
@@ -247,6 +280,24 @@ export function ThreeYearPath() {
           </div>
         </div>
       </Card>
+
+      {/* Success Message */}
+      {showSuccess && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+        >
+          <Card className="bg-gradient-to-r from-[#42F5DC]/20 to-[#6E79FF]/20 border-[#42F5DC]/50 p-4">
+            <div className="flex items-center gap-3">
+              <Wand2 className="w-5 h-5 text-[#42F5DC]" />
+              <div className="text-[#42F5DC]">
+                {successMessage} 前往"显化面板"查看
+              </div>
+            </div>
+          </Card>
+        </motion.div>
+      )}
     </div>
   );
 }
